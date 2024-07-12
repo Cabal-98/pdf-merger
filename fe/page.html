@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Merger</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        #fileList {
+            margin-top: 20px;
+        }
+        .file-item {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF Merger</h1>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" multiple>
+        <button type="button" onclick="addFiles()">Add Files</button>
+    </form>
+    <button type="button" onclick="uploadFiles()">Upload and Merge</button>
+    <div id="fileList"></div>
+    <script>
+        let files = [];
+
+        function addFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const newFiles = Array.from(fileInput.files);
+            files = files.concat(newFiles);
+            updateFileList();
+            fileInput.value = '';  // Clear the input
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            files.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.textContent = `${index + 1}: ${file.name}`;
+                fileList.appendChild(div);
+            });
+        }
+
+        async function uploadFiles() {
+            if (files.length === 0) {
+                alert('Please select files to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            const body = [];
+
+            for (let i = 0; i < files.length; i++) {
+                formData.append('file', files[i]);
+                body.push({ objName: files[i].name, order: i + 1 });
+            }
+
+            formData.append('body', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+
+            // Impostazione del timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondi
+
+            try {
+                const response = await fetch('http://localhost:8080/ordered-merge', {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                });
+
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'MergedPDF.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert('Failed to merge PDF files');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    alert('Request timed out');
+                } else {
+                    console.error('Error:', error);
+                    alert('Failed to merge PDF files');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

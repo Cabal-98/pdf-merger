@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: pdf-merger
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+
+server:
+  tomcat:
+    max-http-post-size: 200MB
+    max-swallow-size: 200MB
+  connection-timeout: 90s
+  servlet:
+    session:
+      timeout: 90s  # Session timeout
