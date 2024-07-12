@@ -25,6 +25,7 @@ public class PDFController {
 
     private final MergePagesService merge;
 
+    @CrossOrigin
     @PostMapping(value = "/ordered-merge", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Resource> mergePDF(@RequestPart(value = "file") List<MultipartFile> files,
                                              @RequestPart(value = "body") List<OrderedDTO> dati) throws IOException, DocumentException {
