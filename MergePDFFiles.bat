@@ -13,7 +13,7 @@ rem Avvia il backend Spring Boot (usa il percorso relativo al file JAR)
 start cmd /k "java -jar target\pdf-page-merger-1.0.0.jar && echo Backend avviato con successo. || echo Errore nell'avvio del backend. & pause"
 
 
-rem (assicurati che il backend sia avviato prima)
+rem Si assicura dell'avvio del backend
 echo Attendo disponibilita del backend...
 :waitLoop
 netstat -aon | findstr :8080 | findstr LISTENING > NUL
@@ -21,7 +21,7 @@ if errorlevel 1 goto waitLoop
 
 echo Avvio frontend in corso...
 
-rem Apri il frontend nel browser (sostituisci con l'URL del tuo frontend)
+rem Apre il frontend nel browser
 start "" "%~dp0fe\page.html"
 
 @echo off
