@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>it.feliziani.tools</groupId>
 	<artifactId>pdf-page-merger</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>pdf-page-merger</name>
 	<description>Program to merge pdf files</description>
 	<url/>

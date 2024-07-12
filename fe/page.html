@@ -7,10 +7,26 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            border: 2px solid #ff0000; /* Bordo rosso */
+            text-align: center;
         }
         h1 {
-            margin-bottom: 20px;
+            color: #fff;
+            background-color: #ff0000; /* Sfondo rosso */
+            padding: 10px;
+            margin-top: 0;
         }
         form {
             margin-bottom: 20px;
@@ -24,86 +40,93 @@
     </style>
 </head>
 <body>
+<div class="container">
     <h1>PDF Merger</h1>
     <form id="uploadForm">
         <input type="file" id="fileInput" multiple>
         <button type="button" onclick="addFiles()">Add Files</button>
+        <br><br>
+        <label for="outputFileName">Output File Name:</label>
+        <input type="text" id="outputFileName" placeholder="MergedPDF.pdf">
     </form>
     <button type="button" onclick="uploadFiles()">Upload and Merge</button>
     <div id="fileList"></div>
-    <script>
-        let files = [];
+</div>
+<script>
+    let files = [];
 
-        function addFiles() {
-            const fileInput = document.getElementById('fileInput');
-            const newFiles = Array.from(fileInput.files);
-            files = files.concat(newFiles);
-            updateFileList();
-            fileInput.value = '';  // Clear the input
+    function addFiles() {
+        const fileInput = document.getElementById('fileInput');
+        const newFiles = Array.from(fileInput.files);
+        files = files.concat(newFiles);
+        updateFileList();
+        fileInput.value = '';  // Clear the input
+    }
+
+    function updateFileList() {
+        const fileList = document.getElementById('fileList');
+        fileList.innerHTML = '';
+        files.forEach((file, index) => {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.textContent = `${index + 1}: ${file.name}`;
+            fileList.appendChild(div);
+        });
+    }
+
+    async function uploadFiles() {
+        if (files.length === 0) {
+            alert('Please select files to upload.');
+            return;
         }
 
-        function updateFileList() {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            files.forEach((file, index) => {
-                const div = document.createElement('div');
-                div.className = 'file-item';
-                div.textContent = `${index + 1}: ${file.name}`;
-                fileList.appendChild(div);
+        const outputFileName = document.getElementById('outputFileName').value || 'MergedPDF.pdf';
+
+        const formData = new FormData();
+        const body = [];
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('file', files[i]);
+            body.push({ objName: files[i].name, order: i + 1 });
+        }
+
+        formData.append('body', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+
+        // Impostazione del timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondi
+
+        try {
+            const response = await fetch('http://localhost:8080/ordered-merge', {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal,
             });
-        }
 
-        async function uploadFiles() {
-            if (files.length === 0) {
-                alert('Please select files to upload.');
-                return;
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = outputFileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } else {
+                alert('Failed to merge PDF files');
             }
-
-            const formData = new FormData();
-            const body = [];
-
-            for (let i = 0; i < files.length; i++) {
-                formData.append('file', files[i]);
-                body.push({ objName: files[i].name, order: i + 1 });
-            }
-
-            formData.append('body', new Blob([JSON.stringify(body)], { type: 'application/json' }));
-
-            // Impostazione del timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 secondi
-
-            try {
-                const response = await fetch('http://localhost:8080/ordered-merge', {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                });
-
-                clearTimeout(timeoutId);
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = 'MergedPDF.pdf';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                } else {
-                    alert('Failed to merge PDF files');
-                }
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    alert('Request timed out');
-                } else {
-                    console.error('Error:', error);
-                    alert('Failed to merge PDF files');
-                }
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                alert('Request timed out');
+            } else {
+                console.error('Error:', error);
+                alert('Failed to merge PDF files');
             }
         }
-    </script>
+    }
+</script>
 </body>
 </html>
