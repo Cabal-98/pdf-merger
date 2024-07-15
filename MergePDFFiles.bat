@@ -22,6 +22,6 @@ if errorlevel 1 goto waitLoop
 echo Avvio frontend in corso...
 
 rem Apre il frontend nel browser
-start "" "%~dp0fe\page.html"
+rem start "" "%~dp0fe\page.html"
 
 @echo off

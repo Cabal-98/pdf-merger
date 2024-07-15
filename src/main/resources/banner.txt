@@ -1,0 +1,9 @@
+ _____ ____  _____           _____
+|  _  |    \|   __|   ___   |     |___ ___ ___ ___ ___
+|   __|  |  |   __|  |___|  | | | | -_|  _| . | -_|  _|
+|__|  |____/|__|            |_|_|_|___|_| |_  |___|_|
+                                          |___|
+
+${spring.application.version} - Leonardo S.p.A.
+
+${AnsiColor.BRIGHT_BLUE}::  Running Spring Boot ${spring-boot.version} :: ${AnsiColor.BRIGHT_WHITE}
